@@ -1,5 +1,6 @@
 SET(DGTAL_TOOLS_SRC
-	displayContours
+  displayContours
+  2dVectorField
         patternTriangulation
         3dCurvatureViewer
         3dCurvatureViewerNoise
