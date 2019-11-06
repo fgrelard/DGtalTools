@@ -92,31 +92,35 @@ int main(int argc, char** argv) {
 
     std::string specificStyle =  aDomain.className() + "/Paving";
     int cpt = 0;
+    std::cout << aDomain << std::endl;
 	for (auto it = aDomain.begin(), ite = aDomain.end(); it != ite; ++it) {
+        Z2i::Point p = *it;
+         p[1] = aDomain.upperBound()[1] - p[1];
         board << CustomStyle( (*it).className(),
                               new CustomColors( Color::None,
                                                 (unsigned char) fixed(*it) ) )
-              << *it;
+              << p;
     }
     for (auto it = aDomain.begin(), ite = aDomain.end(); it != ite; ++it) {
-
-        if (cpt != spacing) {
+        if (cpt < spacing) {
             cpt++;
             continue;
         }
         else {
             cpt = 0;
+            Z2i::Point p = *it;
+            p[1] = aDomain.upperBound()[1] - p[1];
             auto vectorITK = dgtalImage(*it);
-            Z2i::RealVector vector(vectorITK[0], vectorITK[1]);
+            Z2i::RealVector vector(vectorITK[0], -vectorITK[1]);
             double norm = vector.norm();
-            Z2i::RealPoint p( (*it)[ 0 ], (*it)[ 1 ] );
-
             board.setPenColor(colormap(norm));
             board.setLineWidth(0.5);
             Z2i::RealPoint destination = p + size*vector;
-            board.drawArrow(p[0], p[1], destination[0], destination[1]);
+            board.drawArrow((float)p[0], (float)p[1], destination[0], destination[1]);
         }
 	}
+    board.scaleAll(0.2);
+//    board.rotate(M_PI, LibBoard::Point(0,0) );
     board.saveSVG(outputFilename.c_str(), aDomain.upperBound()[0], aDomain.upperBound()[1]);
     DGtal::trace.info() << "exported" << std::endl;
 

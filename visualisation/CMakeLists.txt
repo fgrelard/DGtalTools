@@ -1,6 +1,7 @@
 SET(DGTAL_TOOLS_SRC
   displayContours
   2dVectorField
+  2dHelmholtzDecomposition
         patternTriangulation
         3dCurvatureViewer
         3dCurvatureViewerNoise
