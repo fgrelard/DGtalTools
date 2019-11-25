@@ -22,8 +22,9 @@ int main(int argc, char** argv) {
 		("help,h", "display this message")
 		("input,i", po::value<std::string>(), "vector field (.mha)" )
         ("fixed,f", po::value<std::string>(), "fixed image (itk format)" )
-        ("arrowsize,a", po::value<int>()->default_value(1), "arrow size")
+        ("arrowsize,a", po::value<float>()->default_value(1.0), "arrow size")
         ("spacing,s", po::value<float>()->default_value(1.0), "spacing between arrows (in pixels)")
+        ("invert,t", po::bool_switch()->default_value(false), "invert the transform")
 		("output,o",  po::value<std::string>(), "output itk file" ) ;
 
 	bool parseOK=true;
@@ -50,8 +51,8 @@ int main(int argc, char** argv) {
 	string inputFilename = vm["input"].as<std::string>();
 	string outputFilename = vm["output"].as<std::string>();
     string fixedFilename = vm["fixed"].as<std::string>();
-
-    int size = vm["arrowsize"].as<int>();
+    bool invert = vm["invert"].as<bool>();
+    float size = vm["arrowsize"].as<float>();
     float spacing = vm["spacing"].as<float>();
 
 	typedef Z2i::Space Space;
@@ -97,7 +98,7 @@ int main(int argc, char** argv) {
         Z2i::Point p = *it;
          p[1] = aDomain.upperBound()[1] - p[1];
         board << CustomStyle( (*it).className(),
-                              new CustomColors( Color::None,
+                              new CustomColors( (unsigned char) fixed(*it),
                                                 (unsigned char) fixed(*it) ) )
               << p;
     }
@@ -114,12 +115,16 @@ int main(int argc, char** argv) {
             Z2i::RealVector vector(vectorITK[0], -vectorITK[1]);
             double norm = vector.norm();
             board.setPenColor(colormap(norm));
-            board.setLineWidth(0.5);
+            board.setLineWidth(1);
+            board.setLineStyle(Board2D::Shape::SolidStyle);
+
             Z2i::RealPoint destination = p + size*vector;
+            if (invert)
+                destination = p - size*vector;
             board.drawArrow((float)p[0], (float)p[1], destination[0], destination[1]);
         }
 	}
-    board.scaleAll(0.2);
+//    board.scaleAll(0.2);
 //    board.rotate(M_PI, LibBoard::Point(0,0) );
     board.saveSVG(outputFilename.c_str(), aDomain.upperBound()[0], aDomain.upperBound()[1]);
     DGtal::trace.info() << "exported" << std::endl;
